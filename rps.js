@@ -1,59 +1,97 @@
+// Get the elements from the page
+const playerScoreSpan = document.getElementById('playerScore');
+const computerScoreSpan = document.getElementById('computerScore');
+const playerChoiceDisplay = document.getElementById('playerChoiceDisplay');
+const computerChoiceDisplay = document.getElementById('computerChoiceDisplay');
+
+// Initialize scores
+let playerWins = 0;
+let computerWins = 0;
+
 function computerSelection() {
     const choices = ['rock', 'paper', 'scissors'];
     const randomNumber = Math.floor(Math.random() * 3);
-    let computerChoice = choices[randomNumber];
-    console.log(computerChoice)
-    return computerChoice
+    return choices[randomNumber];
 }
 
-function playerSelection() {
-    let playerChoice = prompt("Choose rock, paper, or scissors: ");
 
-    if (playerChoice.toLowerCase() !== "rock" && playerChoice.toLowerCase() !== "paper" && playerChoice.toLowerCase() !== "scissors") {
-        console.log("Oops! That's not a correct option. Please try again!");
-    }   else {
-            console.log(playerChoice)
-            return playerChoice.toLowerCase();
-        }
-}
+function playRound(playerChoice){
+    const computerChoice = computerSelection();
+    computerChoiceDisplay.textContent = computerChoice.charAt(0).toUpperCase() + computerChoice.slice(1);
+    playerChoiceDisplay.textContent = playerChoice.charAt(0).toUpperCase() + playerChoice.slice(1);
 
-function playRound(playerChoice, computerChoice) {
     if (computerChoice === playerChoice) {
-        console.log("It's a tie!");
         return "tie";
-    }   else if ((computerChoice === "rock" && playerChoice !== "scissors") || (computerChoice === "paper" && playerChoice !== "rock") || (computerChoice === "scissors" && playerChoice !== "paper")) {
-            console.log("You lose!")
-            return "computer";     
-    }   else {
-        console.log("You win!");
+    } else if ((computerChoice === "rock" && playerChoice === "scissors") || 
+               (computerChoice === "paper" && playerChoice === "rock") || 
+               (computerChoice === "scissors" && playerChoice === "paper")) {
+        computerScoreSpan.textContent = computerWins;
+        return "computer";     
+    } else {
+        playerScoreSpan.textContent = playerWins;
         return "player";
     }
 }
 
-function game() {
-    let playerWins = 0;
-    let computerWins = 0;
+function showPopup(message) {
+    const popup = document.getElementById('gameResultPopup');
+    const popupMessage = document.getElementById('popupMessage');
+    popupMessage.textContent = message;
+    popup.style.display = 'flex';
+}
 
-    while (playerWins < 3 && computerWins < 3) {
-        const gameOutcome = playRound(computerSelection(), playerSelection());
-
-        if (gameOutcome === "player") {
-            playerWins++;
-            console.log("Player wins this round. Score: Player " + playerWins + ", Computer " + computerWins);
-        } else if (gameOutcome === "computer") {
-            computerWins++;
-            console.log("Computer wins this round. Score: Player " + playerWins + ", Computer " + computerWins);
-        } else {
-            console.log("It's a tie. Score: Player " + playerWins + ", Computer " + computerWins);
-        }
-    }
-    if (playerWins === 3) {
-        console.log("Player wins the game!");
-    } else {
-        console.log("Computer wins the game!");
-    }
+function closePopup() {
+    const popup = document.getElementById('gameResultPopup');
+    popup.style.display = 'none';
 }
 
 
+function updateScores(winner) {
+    if (winner === "player") {
+        playerWins++;
+    } else if (winner === "computer") {
+        computerWins++;
+    }
 
-game();
+    playerScoreSpan.textContent = playerWins;
+    computerScoreSpan.textContent = computerWins;
+
+    if (playerWins === 3 || computerWins === 3) {
+        let winnerText = playerWins === 3 ? "Player wins the game!" : "Computer wins the game!";
+        showPopup(winnerText);
+    }
+}
+
+// Add event listeners to buttons
+document.querySelectorAll('.choiceButton').forEach(button => {
+    button.addEventListener('click', function() {
+        const winner = playRound(this.id);
+        updateScores(winner);
+    });
+});
+
+
+document.querySelector('.close-btn').addEventListener('click', closePopup);
+
+// Prevent further play if the game is over
+function disableButtons() {
+    document.querySelectorAll('.choiceButton').forEach(button => button.disabled = true);
+}
+
+// Allow the game to continue after closing the popup
+function enableButtons() {
+    document.querySelectorAll('.choiceButton').forEach(button => button.disabled = false);
+}
+
+// Modify closePopup to reset the game
+function closePopup() {
+    const popup = document.getElementById('gameResultPopup');
+    popup.style.display = 'none';
+    playerWins = 0;
+    computerWins = 0;
+    playerScoreSpan.textContent = playerWins;
+    computerScoreSpan.textContent = computerWins;
+    playerChoiceDisplay.textContent = '';
+    computerChoiceDisplay.textContent = '';
+    enableButtons();
+}
